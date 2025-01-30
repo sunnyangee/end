@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>슬라이드쇼</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; background: black; }
+        #slideshow { position: relative; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
+        img { width: 95%; height: 95%; object-fit: contain; position: absolute; display: none; }
+        .visible { display: block; }
+    </style>
+</head>
+<body>
+    <div id="slideshow">
+        <img src="img1.jpg" class="visible">
+        <img src="img2.jpg">
+        <img src="img3.jpg">
+        <img src="img4.jpg">
+        <img src="img5.jpg">
+        <img src="img6.jpg">
+        <img src="img7.jpg">
+        <img src="img8.jpg">
+        <img src="img9.jpg">
+        <img src="img10.jpg">
+        <img src="img11.jpg">
+        <img src="img12.jpg">
+    </div>
+    
+    <audio id="audio" src="talk.mp3"></audio>
+
+    <script>
+        const images = document.querySelectorAll("#slideshow img");
+        const audio = document.getElementById("audio");
+        let index = 0;
+        let started = false;
+        let interval;
+
+        function showNextImage() {
+            if (index < images.length - 1) { 
+                images[index].classList.remove("visible");
+                images[index].style.display = "none";
+                index++;
+                images[index].classList.add("visible");
+                images[index].style.display = "block";
+
+                if (started) {
+                    audio.currentTime = 0;
+                    audio.play().catch(error => console.log("오디오 자동 재생 차단됨:", error));
+                }
+
+                if (index === images.length - 1) {
+                    clearInterval(interval); // 마지막 이미지에서 슬라이드쇼 멈춤
+                }
+            }
+        }
+
+        function startSlideshow() {
+            if (!started) {
+                started = true;
+                audio.play().then(() => {
+                    interval = setInterval(showNextImage, 2000);
+                }).catch(error => console.log("오디오 자동 재생 차단됨:", error));
+            }
+        }
+
+        function goToNextPage() {
+            if (started && index === images.length - 1) {  // 슬라이드쇼가 끝났을 때만 실행
+                window.location.href = "next.html";
+            }
+        }
+
+        // **PC(클릭) & 모바일(터치) 이벤트 적용**
+        document.addEventListener("click", () => {
+            startSlideshow();
+            goToNextPage();
+        });
+
+        document.addEventListener("touchstart", () => {
+            startSlideshow();
+            goToNextPage();
+        }, { passive: true });
+
+    </script>
+</body>
+</html>

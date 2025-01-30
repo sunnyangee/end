@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Next Scene 2</title>
+    <link rel="stylesheet" as="style" crossorigin 
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard Variable', sans-serif; }
+        body { 
+            background: black; /* 처음에는 검은 화면 */
+            height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            overflow: hidden; 
+            position: relative; 
+            transition: background 1.5s ease-in-out; /* 배경 변경 애니메이션 추가 */
+            flex-direction: column; /* 요소를 세로 정렬 */
+        }
+        /* 역할(이름표) 스타일 - 대화 박스보다 더 위에 배치 & 크기 조정 */
+        .name-box {
+            position: absolute;
+            top: 40%;
+            left: 5%;
+            background: rgba(255, 255, 255, 0.9);
+            color: black;
+            font-size: 1.6vw;
+            font-weight: bold;
+            padding: 1vw 2.5vw;
+            border-radius: 0;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        @media (max-width: 600px) {
+            .name-box {
+                font-size: 4vw;
+            }
+        }
+        /* 대화 박스 스타일 */
+        .dialogue-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 95vw;
+            max-width: 900px;
+            padding: 4vw;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            font-size: 1.8vw;
+            border-radius: 0;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            text-align: left;
+            line-height: 2;
+        }
+        @media (max-width: 600px) {
+            .dialogue-box {
+                font-size: 3.5vw;
+            }
+        }
+        /* 행동지문 스타일 */
+        .action-text {
+            color: #b0b0b0;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 역할 박스 -->
+    <div id="nameBox" class="name-box"></div>
+
+    <!-- 대화 박스 -->
+    <div id="dialogueBox" class="dialogue-box">
+        <div id="textContent"></div>
+    </div>
+
+    <!-- 효과음 -->
+    <audio id="clickSound" src="click.mp3"></audio>
+    <audio id="bgm" src="bgm.mp3" loop></audio>
+
+    <script>
+        const clickSound = document.getElementById("clickSound");
+        const bgm = document.getElementById("bgm");
+        const dialogueBox = document.getElementById("dialogueBox");
+        const nameBox = document.getElementById("nameBox");
+        const textContent = document.getElementById("textContent");
+
+        let scriptIndex = 0;
+        let intervalId;
+
+        // 인터뷰 스크립트
+        const scriptTexts = [
+            { role: "행동지문", text: "대피소의 문을 열고, 밖으로 나선 우리는 알 수 있었습니다." },
+            { role: "행동지문", text: "쏟아지는 셔터음과 몰려드는 기자들이 있다는 것으로 보아, 바깥은 이 감염체제와 별개의 세상으로 멀쩡히 돌아가고 있었다는 것을요." },
+            { role: "행동지문", text: "수백 명이 특종을 얻기 위해 달려들어, 우리들을 에워쌉니다." },
+            { role: "행동지문", text: "당황과 불안 사이, 들리는 질문들." },
+            { role: "기자", text: "좀비 사태의 원인이 뭐라고 생각하십니까?" },
+            { role: "기자", text: "첫번째 부작용을 일으킨 학생은 누구였습니까?" },
+            { role: "기자", text: "동행한 코치의 행방을 알고 있습니까?" },
+            { role: "기자", text: "살아남기 위해 다른 학생들을 어떤식으로 처리했습니까?" },
+            { role: "행동지문", text: "앞다투어 하는 말들은 모두 비수가 되어 버겁게 쏟아져 내립니다." },
+            { role: "행동지문", text: "혼란에 빠진 우리들은, 이 자리에 묶여 잠시 생각을 정리해 봅니다." },
+            { role: "행동지문", text: "그중, 하나가 먼저 입을 떼어 말을 합니다." },
+            { role: "A", text: "저희는 천성 재단 실험의 무고한 피해자인데요." },
+            { role: "A", text: "각성제 개발을 위해 저희를 생체 실험 대상으로 이용한 거예요." },
+            { role: "행동지문", text: "그러자, 무섭도록 고요한 정적이 찾아옵니다." }, // 이 부분에서 배경 변경
+            { role: "행동지문", text: "수백 개의 안구가 단 한 사람을 향해 일제히 모여들고, 좌중은 침묵만이 맴돌 뿐…" },
+            { role: "행동지문", text: "….. 소름끼쳐." },
+            { role: "행동지문", text: "그중 한 기자가 일시간의 침묵을 가르고 다음 질문을 이어나갑니다." },
+            { role: "기자", text: "학생들 사이에서 벌어진 변이 감염입니까?" },
+            { role: "기자", text: "평소에 도핑을 숨기고 있었던 학생의 소행이 아닙니까?" },
+            { role: "행동지문", text: "장내는 여전히 재개한 셔터 소리와, 취재를 빙자한 폭언으로 소란스럽지만… 우리는 한순간에 아득해집니다." },
+            { role: "행동지문", text: "그 누가 우리의 말을 믿어 줄까요." },
+            { role: "행동지문", text: "모두가 진실을 묵인하고 있습니다." },
+            { role: "행동지문", text: "문득, 현실을 직면하는 게 두려워집니다……" },
+            { role: "행동지문", text: "* 메인 스토리 진행 게시물로 돌아가 주세요." }
+
+    ]
+
+        function startScene() {
+            // 배경 파일 로드
+            const img = new Image();
+            img.src = "background3.gif";
+            img.onload = () => {
+                document.body.style.background = "url('background3.gif') no-repeat center center fixed";
+                document.body.style.backgroundSize = "cover";
+            };
+            img.onerror = () => {
+                document.body.style.background = "gray";
+            };
+
+            // 효과음 재생 후 BGM 시작
+            clickSound.play().catch(error => console.log("클릭 효과음 자동 재생 차단됨:", error));
+            setTimeout(() => {
+                bgm.play().catch(error => console.log("BGM 자동 재생 차단됨:", error));
+            }, 500);
+
+            // 대화 박스 등장
+            setTimeout(() => {
+                dialogueBox.style.opacity = "1";
+                scriptIndex = 0;
+                updateDialogue();
+                intervalId = setInterval(updateDialogue, 3000);
+            }, 2000);
+        }
+
+        function updateDialogue() {
+            if (scriptIndex < scriptTexts.length) {
+                const { role, text } = scriptTexts[scriptIndex];
+
+                if (role === "행동지문") {
+                    nameBox.style.opacity = "0";
+                    textContent.innerHTML = `<span class="action-text">${text}</span>`;
+                } else {
+                    nameBox.innerText = role;
+                    nameBox.style.opacity = "1";
+                    textContent.innerText = text;
+                }
+
+                // 특정 스크립트에서 배경 변경
+                if (text === "그러자, 무섭도록 고요한 정적이 찾아옵니다.") {
+                    document.body.style.background = "url('background4.gif') no-repeat center center fixed";
+                    document.body.style.backgroundSize = "cover";
+                }
+
+                scriptIndex++;
+            } else {
+                clearInterval(intervalId);
+                setTimeout(() => {
+                    dialogueBox.style.opacity = "0";
+                    nameBox.style.opacity = "0";
+                }, 3000);
+            }
+        }
+
+        document.addEventListener("click", startScene, { once: true });
+        document.addEventListener("touchstart", startScene, { once: true, passive: true });
+
+    </script>
+</body>
+</html>

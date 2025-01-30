@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Next Scene</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: black url('background.gif') no-repeat center center fixed; 
+            background-size: cover;
+            height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            overflow: hidden; 
+            position: relative; 
+        }
+        .image-container {
+            position: absolute;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .image-container img {
+            position: absolute;
+            width: 70vw; 
+            max-width: 400px;
+            opacity: 0;
+            transform: translateY(50vh) scale(0.8);
+            transition: transform 1.5s ease-out, opacity 1.5s ease-out;
+        }
+        #img1 { z-index: 1; transform: translateY(50vh) rotate(-5deg); }
+        #img2 { z-index: 2; transform: translateY(50vh) rotate(0deg); }
+        #img3 { z-index: 3; transform: translateY(50vh) rotate(5deg); }
+    </style>
+</head>
+<body>
+    <div class="image-container">
+        <img id="img1" src="article1.png">
+        <img id="img2" src="article2.png">
+        <img id="img3" src="article3.png">
+    </div>
+
+    <script>
+        let started = false;  // 슬라이드쇼 시작 여부 확인용
+        let bgmPlaying = false;  // BGM 재생 여부 확인용
+
+        function startBGM() {
+            if (!bgmPlaying) {
+                bgmPlaying = true;
+                let bgm = new Audio("bgm.mp3");
+                bgm.loop = true;
+                bgm.play().catch(error => console.log("BGM 자동 재생 차단됨:", error));
+                window.bgm = bgm; // 전역 객체에 저장하여 다른 페이지에서도 재생 유지 가능
+            }
+        }
+
+        function showImages() {
+            if (!started) {
+                started = true;
+                startBGM();
+
+                setTimeout(() => {
+                    document.getElementById("img1").style.opacity = "1";
+                    document.getElementById("img1").style.transform = "translateY(0) rotate(-5deg) scale(1)";
+                }, 500);
+
+                setTimeout(() => {
+                    document.getElementById("img2").style.opacity = "1";
+                    document.getElementById("img2").style.transform = "translateY(0) rotate(0deg) scale(1)";
+                }, 500 + 4500);
+
+                setTimeout(() => {
+                    document.getElementById("img3").style.opacity = "1";
+                    document.getElementById("img3").style.transform = "translateY(0) rotate(5deg) scale(1)";
+                }, 500 + 4500 * 2);
+            }
+        }
+
+        function goToNextPage() {
+            let img3 = document.getElementById("img3");
+            if (started && img3.style.opacity === "1") {  
+                window.location.href = "next2.html";
+            }
+        }
+
+        // **PC(클릭) & 모바일(터치) 이벤트 적용**
+        document.addEventListener("click", () => {
+            showImages();
+            goToNextPage();
+        });
+
+        document.addEventListener("touchstart", () => {
+            showImages();
+            goToNextPage();
+        }, { passive: true });
+
+    </script>
+</body>
+</html>
