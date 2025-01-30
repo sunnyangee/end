@@ -21,11 +21,11 @@
         }
         .name-box {
             position: absolute;
-            top: 40%;
+            top: 38%; /* 살짝 위로 조정 */
             left: 5%;
             background: rgba(255, 255, 255, 0.9);
             color: black;
-            font-size: 22px; /* ✅ 기본 글씨 크기 지정 */
+            font-size: 20px; /* ✅ 기존 22px → 20px 줄임 */
             font-weight: bold;
             padding: 1vw 2.5vw;
             border-radius: 0;
@@ -40,29 +40,29 @@
             transform: translate(-50%, -50%);
             width: 90vw;
             max-width: 900px;
-            padding: 4vw;
+            padding: 3.5vw; /* ✅ 내부 패딩 4vw → 3.5vw 줄임 */
             background: rgba(0, 0, 0, 0.85);
             color: white;
-            font-size: 24px; /* ✅ 기본 크기 지정 (가변) */
+            font-size: 19px; /* ✅ 기존 24px → 19px 줄임 */
             border-radius: 0;
             opacity: 0;
             transition: opacity 1.5s ease-in-out;
             text-align: left;
-            line-height: 2;
+            line-height: 1.8;
         }
         .action-text {
             color: #b0b0b0;
             font-style: italic;
-            font-size: inherit; /* ✅ 글씨 크기 유지 */
+            font-size: inherit;
         }
 
         /* ✅ 모바일 화면에서 최소 글씨 크기 보장 */
         @media (max-width: 600px) {
             .name-box {
-                font-size: 18px; /* 최소 크기 설정 */
+                font-size: 16px; /* 기존 18px → 16px */
             }
             .dialogue-box {
-                font-size: 20px; /* 모바일에서 최소 크기 적용 */
+                font-size: 17px; /* 기존 20px → 17px */
             }
         }
     </style>
@@ -88,10 +88,9 @@
         let started = false;
         let intervalId;
 
-        
-
         // 인터뷰 스크립트 (이름, 대사)
         const scriptTexts = [
+            { role: "행동지문", text: "..." },
             { role: "행동지문", text: "대피소의 문을 열고, 밖으로 나선 우리는 알 수 있었습니다." },
             { role: "행동지문", text: "쏟아지는 셔터음과 몰려드는 기자들이 있다는 것으로 보아, 바깥은 이 감염체제와 별개의 세상으로 멀쩡히 돌아가고 있었다는 것을요." },
             { role: "행동지문", text: "수백 명이 특종을 얻기 위해 달려들어, 우리들을 에워쌉니다." },
@@ -122,35 +121,20 @@
             if (started) return;
             started = true;
 
-            // 🔥 해결: clickSound를 반드시 사용자 액션 내에서 실행
-            clickSound.currentTime = 0; // 처음부터 재생
-            clickSound.volume = 1; // 🔥 볼륨을 100%로 설정 (혹시 0일 경우 대비)
-            clickSound.play().then(() => {
-                console.log("🔊 click.mp3 재생됨!");
-            }).catch(error => {
-                console.log("⚠️ 클릭 효과음 자동 재생 차단됨:", error);
-            });
+            clickSound.currentTime = 0;
+            clickSound.volume = 1;
+            clickSound.play().catch(error => console.log("⚠️ 클릭 효과음 자동 재생 차단됨:", error));
 
-            // 🔥 해결: 0.5초 후 BGM 실행 (사용자 액션 이후 실행되므로 차단되지 않음)
             setTimeout(() => {
                 bgm.volume = 1;
                 bgm.play().catch(error => console.log("⚠️ BGM 자동 재생 차단됨:", error));
             }, 500);
 
-            const img = new Image();
-            img.src = "background3.gif";
-            img.onload = () => {
-                document.body.style.background = "url('background3.gif') no-repeat center center fixed";
-                document.body.style.backgroundSize = "cover";
-            };
-            img.onerror = () => {
-                document.body.style.background = "gray";
-            };
+            // ✅ 배경 변경이 정상적으로 실행되는지 확인 로그 추가
+            console.log("🔄 배경을 background3.gif로 변경 중...");
 
-            clickSound.play().catch(error => console.log("클릭 효과음 자동 재생 차단됨:", error));
-            setTimeout(() => {
-                bgm.play().catch(error => console.log("BGM 자동 재생 차단됨:", error));
-            }, 500);
+            document.body.style.background = "url('background3.gif') no-repeat center center fixed";
+            document.body.style.backgroundSize = "cover";
 
             setTimeout(() => {
                 dialogueBox.style.opacity = "1";
@@ -162,36 +146,28 @@
 
         function updateDialogue() {
             if (scriptIndex < scriptTexts.length) {
-                dialogueBox.style.opacity = "0";
                 nameBox.style.opacity = "0";
+                dialogueBox.style.opacity = "0";
 
-                setTimeout(() => { 
+                setTimeout(() => {
                     const { role, text } = scriptTexts[scriptIndex];
 
-                    if (role === "행동지문") {
-                        nameBox.style.opacity = "0";
-                        textContent.innerHTML = `<span class="action-text">${text}</span>`;
-                    } else {
-                        nameBox.innerText = role;
-                        nameBox.style.opacity = "1";
-                        textContent.innerText = text;
-                    }
+                    nameBox.innerText = role;
+                    textContent.innerText = text;
+                    nameBox.style.opacity = role === "행동지문" ? "0" : "1";
+                    dialogueBox.style.opacity = "1";
 
+                    // ✅ 특정 대사에서 배경 변경 (문장 일치 여부 확인)
                     if (text === "그러자, 무섭도록 고요한 정적이 찾아옵니다.") {
+                        console.log("🔄 배경을 background4.gif로 변경 중...");
                         document.body.style.background = "url('background4.gif') no-repeat center center fixed";
                         document.body.style.backgroundSize = "cover";
                     }
-
-                    dialogueBox.style.opacity = "1";
-                }, 500); 
+                }, 500);
 
                 scriptIndex++;
             } else {
                 clearInterval(intervalId);
-                setTimeout(() => {
-                    dialogueBox.style.opacity = "0";
-                    nameBox.style.opacity = "0";
-                }, 3000);
             }
         }
 
