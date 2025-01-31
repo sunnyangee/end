@@ -59,9 +59,11 @@
         function startSlideshow() {
             if (!started) {
                 started = true;
-                audio.play().then(() => {
-                    interval = setInterval(showNextImage, 2000);
-                }).catch(error => console.log("오디오 자동 재생 차단됨:", error));
+                if (navigator.userAgent.toLowerCase().includes("android")) {
+                    audio.muted = false;
+                    audio.play().catch(error => console.log("안드로이드에서 오디오 자동 재생 차단됨:", error));
+                }
+                interval = setInterval(showNextImage, 2000);
             }
         }
 
@@ -81,7 +83,6 @@
             startSlideshow();
             goToNextPage();
         }, { passive: true });
-
     </script>
 </body>
 </html>
